@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Dashboard</title>
+  <link href="https://fonts.googleapis.com/css?family=Raleway" rel="stylesheet">
+  <link type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.4/semantic.min.css" rel="stylesheet" />
+  <link type="text/css" rel="stylesheet" href="public/dc.css" />
+  <style type="text/css">
+
+    body {
+      font-family: 'Raleway', sans-serif;
+    }
+    h2 {
+      font-family: 'Raleway', sans-serif;
+    }
+    h2 span {
+      font-size: 14px;
+      font-weight: normal;
+      font-family: 'Raleway', sans-serif;
+      ;
+    }
+    td {
+      vertical-align:top;
+    }
+
+    div.dc-chart {
+      float: none;
+      ;
+    }
+
+    .dc-data-count {
+      margin: 0;
+    }
+    .dc-chart g.row text {fill: black;}
+  </style>
+</head>
+
+<body>
+  <div class="ui container">
+    <div class="ui grid">
+      <div class="sixteen wide column">
+        <div class="ui segments">
+          <div class="ui segment">
+            <div class='dc-data-count'>
+              <h2> Facebook Post
+                <span>
+               <span class='filter-count'></span> selected out of <span class='total-count'></span> records.
+                </span>
+              </h2>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div id="lineChart"></div>
+        </div>
+      </div>
+      <div class="seven wide column" id="sevenCol">
+        <h4>Number of Post by Query String</h4>
+        <div id="rowChart"></div>
+      </div>
+      <div class="nine wide column" id="nineCol">
+        <h4>Number of Post by Facebook User</h4>
+        <div id="rowChartFbid"></div>
+      </div>
+      <div class="sixteen wide column">
+        <table class="ui celled padded table" id='dc-table-graph'>
+          <thead>
+            <tr>
+              <th style="width:150px;">Date</th>
+              <th>Message</th>
+            </tr>
+          </thead>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script src="public/d3.js"></script>
+  <script type="text/javascript" src="public/crossfilter.js"></script>
+  <script type="text/javascript" src="public/dc.js"></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.15.1/moment.min.js"></script>
+
+  <script type="text/javascript">
+    function bin_counter(group, limit) {
+        return {
+            all: function() {
+                return group.top(limit)
+            }
+        };
+    }
+    axios.get('https://aswad32.github.io/dcjs-fbanalytics/public/feed.json')
+      .then(function (resp) {
+        var data = resp.data;
+
+        data.forEach(function(d) {
+          d.dtg = d3.time.format.iso.parse(d['created_time'])
+        })
+
+        var ndx = crossfilter(data);
+
+        var dataTable = dc.dataTable("#dc-table-graph");
+
+        var createdTime = ndx.dimension(function(d) {
+          return d3.time.minute(d.dtg);
+        })
+
+        var createdTimeGoup = createdTime.group().reduceCount(function(d) { return d.dtg; });;
+        var queryString = ndx.dimension(function(d) {
+          return d['query_string'];
+        });
+
+        var queryStringGroup = queryString.group();
+        var queryStringFilter = bin_counter(queryStringGroup, 10);
+
+        var fbidDimension = ndx.dimension(function(d) {
+          return d['fbid'];
+        })
+        var fbidGroup = fbidDimension.group()
+        var fbidGroupFilter = bin_counter(fbidGroup, 20);
+
+
+        var all = ndx.groupAll();
+
+        var rowChart = dc.rowChart("#rowChart");
+        var rowChartFbid = dc.rowChart('#rowChartFbid');
+        var lineChart = dc.lineChart("#lineChart");
+
+        dc.dataCount(".dc-data-count")
+          .dimension(ndx)
+          .group(all);
+
+
+        var fullContainerWidth = d3.select("#dc-table-graph").node().getBoundingClientRect().width
+        var colLeftWidth = d3.select("#sevenCol").node().getBoundingClientRect().width
+        var colRightWidth = d3.select("#nineCol").node().getBoundingClientRect().width
+        rowChart
+            .width(colLeftWidth)
+            .height(500)
+            .dimension(queryString)
+            .group(queryStringFilter)
+            .transitionDuration(1000)
+            .elasticX(true)
+            .controlsUseVisibility(true);
+
+        rowChartFbid
+          .width(colRightWidth)
+          .height(500)
+          .dimension(fbidDimension)
+          .group(fbidGroupFilter)
+          .transitionDuration(1000)
+          .elasticX(true)
+          .controlsUseVisibility(true);
+
+        lineChart
+          .width(fullContainerWidth)
+          .height(150)
+          .margins({top: 10, right: 10, bottom: 20, left: 40})
+          .dimension(createdTime)
+          .group(createdTimeGoup)
+          .elasticY(true)
+          .x(d3.time.scale().domain(d3.extent(data, function(d) { return d.dtg; })))
+          .xAxis();
+
+        dataTable.width(960).height(800)
+          .dimension(queryString)
+          .group(function(d) { return "<h4>Facebook Post on 07/10/2016</h4>" })
+          .columns([
+            function(d) { return moment(d.created_time, "YYYY-MM-DD HH:mm Z").format('MMMM DD YYYY, h:mm:ss A'); },
+            function(d) { return '<a href="https://www.facebook.com/' + d.fbid + '" target="__blank">' + d.profile_name + '</a><br />' + d.message + '<br />[' + d.query_string + ']' ; },
+          ])
+          .size(5)
+          .sortBy(function(d){ return d.created_time; })
+          .order(d3.descending);
+
+        dc.renderAll();
+      })
+  </script>
+</body>
+
+</html>
