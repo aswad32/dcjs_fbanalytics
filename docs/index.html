@@ -52,16 +52,28 @@
           </div>
         </div>
         <div class="row">
-          <div id="lineChart"></div>
+          <div id="lineChart">
+            <a class='reset'
+              href='javascript:lineChart.filterAll();dc.redrawAll();'
+              style='visibility: hidden;'>reset</a>
+          </div>
         </div>
       </div>
       <div class="seven wide column" id="sevenCol">
         <h4>Number of Post by Query String</h4>
-        <div id="rowChart"></div>
+        <div id="rowChart">
+          <a class='reset'
+              href='javascript:rowChart.filterAll();dc.redrawAll();'
+              style='visibility: hidden;'>reset</a>
+        </div>
       </div>
       <div class="nine wide column" id="nineCol">
         <h4>Number of Post by Facebook User</h4>
-        <div id="rowChartFbid"></div>
+        <div id="rowChartFbid">
+          <a class='reset'
+              href='javascript:rowChartFbid.filterAll();dc.redrawAll();'
+              style='visibility: hidden;'>reset</a>
+        </div>
       </div>
       <div class="sixteen wide column">
         <table class="ui celled padded table" id='dc-table-graph'>
