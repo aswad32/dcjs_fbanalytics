@@ -45,23 +45,36 @@
             <div class='dc-data-count'>
               <h2> Facebook Post
                 <span>
-               <span class='filter-count'></span> selected out of <span class='total-count'></span> records.
+                  <span class='filter-count'></span> selected out of <span class='total-count'></span> records.
+
                 </span>
               </h2>
             </div>
           </div>
         </div>
         <div class="row">
-          <div id="lineChart"></div>
+          <div id="lineChart">
+            <a class='reset'
+              href='javascript:myChart.filterAll();dc.redrawAll();'
+              style='visibility: hidden;'>reset</a>
+          </div>
         </div>
       </div>
       <div class="seven wide column" id="sevenCol">
         <h4>Number of Post by Query String</h4>
-        <div id="rowChart"></div>
+        <div id="rowChart">
+          <a class='reset'
+              href='javascript:myChart.filterAll();dc.redrawAll();'
+              style='visibility: hidden;'>reset</a>
+        </div>
       </div>
       <div class="nine wide column" id="nineCol">
         <h4>Number of Post by Facebook User</h4>
-        <div id="rowChartFbid"></div>
+        <div id="rowChartFbid">
+          <a class='reset'
+              href='javascript:myChart.filterAll();dc.redrawAll();'
+              style='visibility: hidden;'>reset</a>
+        </div>
       </div>
       <div class="sixteen wide column">
         <table class="ui celled padded table" id='dc-table-graph'>
